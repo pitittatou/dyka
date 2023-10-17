@@ -41,3 +41,7 @@ Course of action du DQN :
         Ces batch seront contenu dans une classe Replay memory qui nous permettrait de pouvoir conserver plein de batch (je crois que c'ets mieux parce que du coup ca rend l'apprentissage IID blablabla)
 
     - Training du DQN (mais du coup ca c'est "juste" l'application/le codage de l'algo d'apprentissage la partie dur c'est celle d'au dessus)
+
+
+Pour le code je me suis basé sur lui : https://gist.github.com/unnat5
+ son code est "expliqué" la : https://unnatsingh.medium.com/deep-q-network-with-pytorch-d1ca6f40bfda
