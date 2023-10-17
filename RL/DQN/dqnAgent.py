@@ -1,3 +1,7 @@
+"""
+Ce fichier créer un agent qui va apprendre 
+
+"""
 import numpy as np
 import random 
 from collections import namedtuple, deque 

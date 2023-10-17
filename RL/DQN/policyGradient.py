@@ -1,3 +1,7 @@
+"""
+J'ai pas encore bien compris le code, mais 
+
+"""
 import gym
 gym.logger.set_level(40) ## suppress warning
 import numpy as np

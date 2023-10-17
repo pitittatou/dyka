@@ -1,3 +1,7 @@
+"""
+Ce fichier sert pour l'entrainement de l'agent
+
+"""
 from dqnAgent import *
 #rajouter import matplotlib pour le plot
 import matplotlib.pyplot as plt

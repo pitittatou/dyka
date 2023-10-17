@@ -1,3 +1,7 @@
+"""
+Ce fichier sert de preuve final. Un vibro qui saura se comporter de maniere autonome
+
+"""
 from dqnAgent import *
 
 #load the weights from file

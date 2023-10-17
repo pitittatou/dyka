@@ -1,3 +1,7 @@
+"""
+Ce fichier sert de model au reseaux de neuronne Q 
+
+"""
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
