@@ -5,10 +5,12 @@ Ce fichier sert pour l'entrainement de l'agent
 from dqnAgent import *
 #rajouter import matplotlib pour le plot
 import matplotlib.pyplot as plt
+from env import *
 
-agent = Agent(state_size=8,action_size=4,seed=0)
+agent = Agent(state_size=1,action_size=10,seed=0)
+env = Env()
 
-def dqn(n_episodes= 200, max_t = 1000, eps_start=1.0, eps_end = 0.01,
+def dqn(n_episodes= 200,  max_t = 50, eps_start=1.0, eps_end = 0.01,
        eps_decay=0.996):
     """Deep Q-Learning
     
@@ -24,13 +26,20 @@ def dqn(n_episodes= 200, max_t = 1000, eps_start=1.0, eps_end = 0.01,
     scores = [] # list containing score from each episode
     scores_window = deque(maxlen=100) # last 100 scores
     eps = eps_start
+    print("On commence les episodes")
+
     for i_episode in range(1, n_episodes+1):
         state = env.reset()
         score = 0
+        
         for t in range(max_t):
-            action = agent.act(state,eps)
+            print("Debut du temps ", t ," de l'episode ",i_episode)
+            action = agent.act(state,eps) # Retourne la freq a mettre le vibro
+            print("Action choisie : ",action)
             next_state,reward,done,_ = env.step(action)
+            print("Next state : ",next_state, " Reward : ",reward, " Done : ",done)
             agent.step(state,action,reward,next_state,done)
+            print("On a fait un step")
             ## above step decides whether we will train(learn) the network
             ## actor (local_qnetwork) or we will fill the replay buffer
             ## if len replay buffer is equal to the batch size then we will

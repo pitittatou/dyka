@@ -22,3 +22,44 @@ PB :  la fonction .step() de env doit pouvoir donner l'etat suivant en fonction 
         Comme ca ca assure une certaine coherence puisque supposement on garde toujours les meme gouts. (plus ou moins)
 
 """
+from sim.vibroUser import User, ComplexUser, RampFreqUser, StableFreqUser
+import random
+
+class Env:
+    def __init__(self):
+        self.user = StableFreqUser(70, 150, 2, 2, 40, 0)
+        self.initState = self.user.get_state()
+        self.state = self.initState
+        self.done = False
+        
+
+    def step(self,action):
+        #Ici l'acttion est une frequence 
+        next_state = self.user.get_next_state(action)
+        reward = self.reward(self.state, next_state)
+        self.state = next_state
+        self.is_done()
+        return next_state, reward, self.done, None
+    
+    def reward(self, state, next_state):
+        # Calculate the reward based on the current state and the next state
+        # For example, you can use the difference between the current and next state as the reward
+        print("State : ",state," Next state : ",next_state, " Reward : ",(next_state - state))
+        reward = (next_state - state) # Division arbitraire pour pas que la recompense soit trop elevée
+        return reward
+
+    def reset(self):
+        #self.user = ComplexUser.new_random_user()
+        self.user = StableFreqUser(70, 150, 2, 2, 10, 3)
+        return self.state
+
+    def get_state(self):
+        return self.state
+    
+    def is_done(self):
+
+        return self.done
+       
+           
+    
+    
