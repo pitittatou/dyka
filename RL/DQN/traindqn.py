@@ -5,12 +5,14 @@ Ce fichier sert pour l'entrainement de l'agent
 from dqnAgent import *
 #rajouter import matplotlib pour le plot
 import matplotlib.pyplot as plt
+from sim.constants import *
 from env import *
 
-agent = Agent(state_size=1,action_size=10,seed=0)
+agent = Agent(state_size=1,action_size= MAX_FREQ,seed=0)
 env = Env()
+actions_taken= [0] * MAX_FREQ
 
-def dqn(n_episodes= 200,  max_t = 50, eps_start=1.0, eps_end = 0.01,
+def dqn(n_episodes= 10,  max_t = 500, eps_start=1.0, eps_end = 0.01,
        eps_decay=0.996):
     """Deep Q-Learning
     
@@ -27,6 +29,7 @@ def dqn(n_episodes= 200,  max_t = 50, eps_start=1.0, eps_end = 0.01,
     scores_window = deque(maxlen=100) # last 100 scores
     eps = eps_start
     print("On commence les episodes")
+    
 
     for i_episode in range(1, n_episodes+1):
         state = env.reset()
@@ -36,6 +39,7 @@ def dqn(n_episodes= 200,  max_t = 50, eps_start=1.0, eps_end = 0.01,
             print("Debut du temps ", t ," de l'episode ",i_episode)
             action = agent.act(state,eps) # Retourne la freq a mettre le vibro
             print("Action choisie : ",action)
+            actions_taken[action] += 1
             next_state,reward,done,_ = env.step(action)
             print("Next state : ",next_state, " Reward : ",reward, " Done : ",done)
             agent.step(state,action,reward,next_state,done)
@@ -71,4 +75,11 @@ ax = fig.add_subplot(111)
 plt.plot(np.arange(len(scores)),scores)
 plt.ylabel('Score')
 plt.xlabel('Epsiode #')
+plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot(111)
+plt.plot(np.arange(len(actions_taken)), actions_taken)
+plt.ylabel('Action')
+plt.xlabel('Time')
 plt.show()

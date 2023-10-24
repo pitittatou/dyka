@@ -27,7 +27,8 @@ import random
 
 class Env:
     def __init__(self):
-        self.user = StableFreqUser(70, 150, 2, 2, 40, 0)
+        self.targetfreq = 17
+        self.user = StableFreqUser(80, 150, 2, 2, self.targetfreq, 3)
         self.initState = self.user.get_state()
         self.state = self.initState
         self.done = False
@@ -37,20 +38,23 @@ class Env:
         #Ici l'acttion est une frequence 
         next_state = self.user.get_next_state(action)
         reward = self.reward(self.state, next_state)
+        print("State : ",self.state," Next state : ",next_state, " Reward : ",(next_state - self.state))
         self.state = next_state
         self.is_done()
+        
+
         return next_state, reward, self.done, None
     
     def reward(self, state, next_state):
         # Calculate the reward based on the current state and the next state
         # For example, you can use the difference between the current and next state as the reward
-        print("State : ",state," Next state : ",next_state, " Reward : ",(next_state - state))
         reward = (next_state - state) # Division arbitraire pour pas que la recompense soit trop elevée
         return reward
 
     def reset(self):
         #self.user = ComplexUser.new_random_user()
-        self.user = StableFreqUser(70, 150, 2, 2, 10, 3)
+        self.user = StableFreqUser(80, 150, 2, 2, self.targetfreq, 3)
+        self.state = self.user.get_state()
         return self.state
 
     def get_state(self):
