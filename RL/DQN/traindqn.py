@@ -7,12 +7,14 @@ from dqnAgent import *
 import matplotlib.pyplot as plt
 from sim.constants import *
 from env import *
+import numpy as np
 
-agent = Agent(state_size=1,action_size= MAX_FREQ,seed=0)
+
+agent = Agent(state_size=10,action_size= 5 ,seed=0)
 env = Env()
-actions_taken= [0] * MAX_FREQ
+actions_taken= [0] * 6
 
-def dqn(n_episodes= 10,  max_t = 500, eps_start=1.0, eps_end = 0.01,
+def dqn(n_episodes= 5000,  max_t = 500, eps_start=1.0, eps_end = 0.01,
        eps_decay=0.996):
     """Deep Q-Learning
     
@@ -63,7 +65,9 @@ def dqn(n_episodes= 10,  max_t = 500, eps_start=1.0, eps_end = 0.01,
             if np.mean(scores_window)>=200.0:
                 print('\nEnvironment solve in {:d} epsiodes!\tAverage score: {:.2f}'.format(i_episode-100,
                                                                                            np.mean(scores_window)))
-                torch.save(agent.qnetwork_local.state_dict(),'checkpoint.pth')
+                torch.save(agent.qnetwork_local.state_dict(),'checkpoint.pt')
+                agent.qnetwork_local.state_dict()
+                
                 break
     return scores
 
@@ -83,3 +87,20 @@ plt.plot(np.arange(len(actions_taken)), actions_taken)
 plt.ylabel('Action')
 plt.xlabel('Time')
 plt.show()
+
+actions = [
+    "0 : NE RIEN FAIRE",
+    "1 : VIBRER MOINS FORT",
+    "2 : VIBRER PLUS FORT",
+    "3 : VIBRER PLUS PLUS FORT",
+    "4 : VIBRER MOINS MOINS FORT"
+]
+for i in range(1):
+    state = env.reset()
+    for j in range(200):
+        action = agent.act(state)
+        print("Action choisie : ",actions[action])
+        state,reward,done,_ = env.step(action)
+        print("Fréquence : ",env.user.freq, " Heart rate : ",env.user.heart_rate)
+        if done:
+            break

@@ -3,21 +3,27 @@ Ce fichier sert de preuve final. Un vibro qui saura se comporter de maniere auto
 
 """
 from dqnAgent import *
+from env import *
 
 #load the weights from file
-agent = Agent(state_size=8,action_size=4,seed=0)
-agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
+agent = Agent(state_size=10,action_size=5,seed=0)
+agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pt'))
+env = Env()
 
-for i in range(3):
+actions = [
+    "0 : NE RIEN FAIRE",
+    "1 : VIBRER MOINS FORT",
+    "2 : VIBRER PLUS FORT",
+    "3 : VIBRER PLUS PLUS FORT",
+    "4 : VIBRER MOINS MOINS FORT"
+]
+for i in range(1):
     state = env.reset()
-    img = plt.imshow(env.render(mode='rgb_array'))
     for j in range(200):
         action = agent.act(state)
-        img.set_data(env.render(mode='rbg_array'))
-        plt.axix('off')
-        display.display(plt.gcf())
-        display.clear_output(wait=True)
+        print("Action choisie : ",actions[action])
         state,reward,done,_ = env.step(action)
+        print("Fréquence : ",env.user.freq, " Heart rate : ",env.user.heart_rate)
         if done:
             break
 
