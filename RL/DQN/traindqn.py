@@ -12,9 +12,23 @@ import numpy as np
 
 agent = Agent(state_size=10,action_size= 5 ,seed=0)
 env = Env()
+poolUser = []
+
+actions = [
+    "0 : NE RIEN FAIRE",
+    "1 : VIBRER MOINS FORT -2 ",
+    "2 : VIBRER PLUS FORT +2 ",
+    "3 : VIBRER PLUS PLUS FORT +10 ",
+    "4 : VIBRER MOINS MOINS FORT -10 "
+]
+
+for i in range(3):
+    poolUser.append(Env(random.randint(1,MAX_FREQ)))
+
+
 actions_taken= [0] * 6
 
-def dqn(n_episodes= 5000,  max_t = 500, eps_start=1.0, eps_end = 0.01,
+def dqn(n_episodes= 50,  max_t = 500, eps_start=1.0, eps_end = 0.01,
        eps_decay=0.996):
     """Deep Q-Learning
     
@@ -32,47 +46,54 @@ def dqn(n_episodes= 5000,  max_t = 500, eps_start=1.0, eps_end = 0.01,
     eps = eps_start
     print("On commence les episodes")
     
+    for i in range(len(poolUser)):
+        env = poolUser[i]
+        print("La target choisi est ", env.targetfreq)
 
-    for i_episode in range(1, n_episodes+1):
-        state = env.reset()
-        score = 0
-        
-        for t in range(max_t):
-            print("Debut du temps ", t ," de l'episode ",i_episode)
-            action = agent.act(state,eps) # Retourne la freq a mettre le vibro
-            print("Action choisie : ",action)
-            actions_taken[action] += 1
-            next_state,reward,done,_ = env.step(action)
-            print("Next state : ",next_state, " Reward : ",reward, " Done : ",done)
-            agent.step(state,action,reward,next_state,done)
-            print("On a fait un step")
-            ## above step decides whether we will train(learn) the network
-            ## actor (local_qnetwork) or we will fill the replay buffer
-            ## if len replay buffer is equal to the batch size then we will
-            ## train the network or otherwise we will add experience tuple in our 
-            ## replay buffer.
-            state = next_state
-            score += reward
-            if done:
-                break
-            scores_window.append(score) ## save the most recent score
-            scores.append(score) ## sae the most recent score
-            eps = max(eps*eps_decay,eps_end)## decrease the epsilon
-            print('\rEpisode {}\tAverage Score {:.2f}'.format(i_episode,np.mean(scores_window)), end="")
-            if i_episode %100==0:
-                print('\rEpisode {}\tAverage Score {:.2f}'.format(i_episode,np.mean(scores_window)))
-                
-            if np.mean(scores_window)>=200.0:
-                print('\nEnvironment solve in {:d} epsiodes!\tAverage score: {:.2f}'.format(i_episode-100,
-                                                                                           np.mean(scores_window)))
-                torch.save(agent.qnetwork_local.state_dict(),'checkpoint.pt')
-                agent.qnetwork_local.state_dict()
-                
-                break
+        for i_episode in range(1, n_episodes+1):
+            state = env.reset()
+            score = 0
+            
+            for t in range(max_t):
+                print("Debut du temps ", t ," de l'episode ",i_episode)
+                action = agent.act(state,eps) # Retourne la freq a mettre le vibro
+                print("Freq : ",  env.user.freq)
+                print("Action choisie : ",actions[action])
+                actions_taken[action] += 1
+                next_state,reward,done,_ = env.step(action)
+                print("Next state : ",next_state, " Reward : ",reward, " Done : ",done)
+                agent.step(state,action,reward,next_state,done)
+
+                print("On a fait un step")
+                ## above step decides whether we will train(learn) the network
+                ## actor (local_qnetwork) or we will fill the replay buffer
+                ## if len replay buffer is equal to the batch size then we will
+                ## train the network or otherwise we will add experience tuple in our 
+                ## replay buffer.
+                state = next_state
+                score += reward
+                if done:
+                    break
+                scores_window.append(score) ## save the most recent score
+                scores.append(score) ## sae the most recent score
+                eps = max(eps*eps_decay,eps_end)## decrease the epsilon
+                #print('\rEpisode {}\tAverage Score {:.2f}'.format(i_episode,np.mean(scores_window)), end="")
+                if i_episode %100==0:
+                    #print('\rEpisode {}\tAverage Score {:.2f}'.format(i_episode,np.mean(scores_window)))
+                    pass
+                    
+                if np.mean(scores_window)>=200.0:
+                    #print('\nEnvironment solve in {:d} epsiodes!\tAverage score: {:.2f}'.format(i_episode-100 np.mean(scores_window)))
+                    torch.save(agent.qnetwork_local.state_dict(),'checkpoint.pt')
+                    agent.qnetwork_local.state_dict()
+                    
+                    break
+            torch.save(agent.qnetwork_local.state_dict(),'checkpoint.pt')
     return scores
 
 scores= dqn()
-
+print("   ")
+print("Target freq : ",poolUser[0].targetfreq)
 #plot the scores
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -88,19 +109,21 @@ plt.ylabel('Action')
 plt.xlabel('Time')
 plt.show()
 
-actions = [
-    "0 : NE RIEN FAIRE",
-    "1 : VIBRER MOINS FORT",
-    "2 : VIBRER PLUS FORT",
-    "3 : VIBRER PLUS PLUS FORT",
-    "4 : VIBRER MOINS MOINS FORT"
-]
+
+
+
+"""
+for i in range(50):
+    print("""""""""""""""""""""""")
+
+user = Env(76)
 for i in range(1):
     state = env.reset()
-    for j in range(200):
+    for j in range(10):
         action = agent.act(state)
         print("Action choisie : ",actions[action])
         state,reward,done,_ = env.step(action)
         print("Fréquence : ",env.user.freq, " Heart rate : ",env.user.heart_rate)
         if done:
             break
+"""

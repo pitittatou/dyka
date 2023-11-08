@@ -26,8 +26,8 @@ from sim.vibroUser import User, ComplexUser, RampFreqUser, StableFreqUser
 import random
 
 class Env:
-    def __init__(self):
-        self.targetfreq = 64
+    def __init__(self, targetfreq = 50):
+        self.targetfreq = targetfreq
         self.user = StableFreqUser(80, 150, 2, 2, self.targetfreq, 3)
         self.initState = self.user.get_state()
         self.state = self.initState
@@ -39,7 +39,6 @@ class Env:
         #Ici l'acttion est une frequence 
         next_state = self.user.get_next_state(action)
         reward = self.reward(self.state, next_state)
-        print("State : ",self.state," Next state : ",next_state, " Reward : ", reward)
         self.state = next_state
         self.is_done()
         
@@ -49,8 +48,38 @@ class Env:
     def reward(self, state, next_state):
         # Calculate the reward based on the current state and the next state
         # For example, you can use the difference between the current and next state as the reward
-        #reward = (next_state - state) # Division arbitraire pour pas que la recompense soit trop elevée
-        reward = self.user.heart_rate - self.user.heart_rate_list[-2] # reward = current HR - previous HR (stocké a l'avant derniere place de la list)
+        #reward = (next_state - state) 
+        action_choisie = next_state[-1]
+        if self.user.get_next_freq(action_choisie) - self.user.freq > 0:  # Si la frequence augmente
+            print("La frequence augmente")
+            if self.user.freq < self.targetfreq: # Si la frequence est inferieur a la target alors on est allé dans le bon sens
+                bonus = 1
+                print("On est allé dans le bon sens")
+            else : # Sinon on est allé dans le mauvais sens
+                bonus = -1
+                print("on est allé dans le mauvais sens")
+        else : # Si la frequence diminue
+            print("La frequence diminue")
+            if self.user.freq < self.targetfreq:
+                bonus = -1
+                print("on est allé dans le mauvais sens")
+            else :
+                bonus = 1
+                print("On est allé dans le bon sens")
+
+      
+
+        bonus = bonus*0.2*(abs(self.user.get_next_freq(action_choisie) - self.user.freq))
+        if action_choisie == 0:
+            if abs(self.user.target_freq - self.user.freq)> self.user.freq_tolerance: #On a décidé de rien faire mais qu'on est pas dans le seuil de tolérance  
+                bonus = -0.5
+                print("On a décidé de rien faire mais qu'on est pas dans le seuil de tolérance")
+            else : #On a décidé de rien faire et on est dans le seuil de tolérance
+                bonus = 0.5
+                print("On a décidé de rien faire et on est dans le seuil de tolérance")
+
+
+        reward = self.user.heart_rate - self.user.heart_rate_list[-2] + bonus # reward = current HR - previous HR (stocké a l'avant derniere place de la list)
         return reward
 
     def reset(self):

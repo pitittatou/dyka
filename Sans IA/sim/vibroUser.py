@@ -10,7 +10,7 @@ class User:
         self.max_increase = max_increase  # The highest possible heart rate reduction, must be positive
         self.max_decrease = max_decrease
         self.max_heart_rate = max_heart_rate
-        self.freq = 50
+        self.freq = 0
 
         self.heart_rate_list = collections.deque([self.heart_rate]*5, maxlen = 5)  # The last 5 heart rates (initialiser a la fréquence de base de l'utilisateur)
         self.actions_taken_list = collections.deque([0]*5, maxlen = 5)  # The last 5 actions taken (initialiser a 0)
@@ -47,7 +47,7 @@ class User:
 
         #Pour l'instant on utilise des valeur de pas aléatoire mais c'ets a modifié
 
-     
+        #print("Freq entrée : ",self.freq, " Action : ",action)
         if action == 0:
             result = self.freq
         elif action == 1:
