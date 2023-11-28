@@ -143,7 +143,7 @@ class UserMAB:
         self.freq = 0
         self.targetFreq = 50
         self.freq_tolerance = 5
-        self.variation_freq_preference = 100
+        self.variation_freq_preference = 250
 
         # Les motifs sont 0 (ne rien faire), 1 (augmenter la fréquence), 2 (diminuer la fréquence)
         self.motif = 0
@@ -152,15 +152,24 @@ class UserMAB:
     def get_next_state(self, motif):
 
         self.nbActionTaken += 1
-       
+        
         if self.motif == motif :
-            if self.heart_rate <= self.max_heart_rate:
-                self.heart_rate += max(-self.max_decrease, self.max_increase)
+            
+            if self.heart_rate != self.max_heart_rate:
+                
+                # Calculer le facteur de réduction en fonction de la proximité de la fréquence cardiaque actuelle par rapport à la fréquence cardiaque maximale
+                reduction_factor = 1
+                #reduction_factor = 1 - (self.heart_rate / self.max_heart_rate)
+                #reduction_factor = 1 - abs((self.targetFreq - self.freq) / self.max_heart_rate)
+
+                # Appliquer le facteur de réduction au gain de fréquence cardiaque
+                self.heart_rate = min(self.heart_rate + reduction_factor * max(-self.max_decrease, self.max_increase), self.max_heart_rate)
             else :
                 self.heart_rate = self.max_heart_rate
         else : 
-            if self.heart_rate >= self.min_heart_rate:
-                self.heart_rate -= max(-self.max_decrease, self.max_increase)
+            if self.heart_rate != self.min_heart_rate:
+
+                self.heart_rate = max(self.heart_rate - max(-self.max_decrease, self.max_increase), self.min_heart_rate)
             else : 
                 self.heart_rate = self.min_heart_rate
         
@@ -191,22 +200,30 @@ class UserMAB:
 
         #Incrément de la fréquence de vibration a faire varier
 
-        if self.motif ==  0:
-            self.freq = self.freq - 20
-        elif self.motif == 1 :
+        if motif ==  0:
+            self.freq = self.freq - 10
+        elif motif == 1 :
             self.freq = self.freq - 5
-        elif self.motif == 2 :
+        elif motif == 2 :
             self.freq = self.freq
-        elif self.motif == 3 :
+        elif motif == 3 :
             self.freq = self.freq + 5
-        elif self.motif == 4 :
-            self.freq = self.freq + 20
+        elif motif == 4 :
+            self.freq = self.freq + 10
+        
+        if self.freq < 0 :
+            self.freq = 0
+        if self.freq > 200 :
+            self.freq = 200,
         
 
     def new_motif(self):
 
         #on actualise le motif en fonction de la freq de l'user
-
+        #print(" sefl.freq : ", self.freq , " Type : ", self.freq)
+        if type(self.freq) == tuple :
+            self.freq = int(self.freq[0])
+            #print(" J'etais un tuple")
         if abs(self.freq - self.targetFreq) <= self.freq_tolerance:  #On est dans l'intervalle de tolerance
             self.motif = 2
 

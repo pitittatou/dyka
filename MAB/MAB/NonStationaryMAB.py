@@ -1,11 +1,13 @@
 import numpy as np
 import csv
+from scipy.stats import beta
+import matplotlib.pyplot as plt
 from sim.constants import *
 
 class NArmedBandit:
 
     #10-armed bandit testbed with sample averages 
-    def __init__(self,arms=NB_MOTIF,step_size = 0.1,eps = 0,UCB_c = None, sample_avg_flag = False,init_estimates = 0.0,mu = 0, std_dev = 1):
+    def __init__(self,arms=NB_MOTIF,step_size = 0.1,eps = 0,UCB_c = None, sample_avg_flag = False,init_estimates = 0.0,mu = 0, std_dev = 1, thomsonSample = False):
 
         self.arms = arms  #number of arms
         self.step_size = step_size  #constant step size
@@ -14,9 +16,12 @@ class NArmedBandit:
         self.mu = mu    #true mean for each action
         self.std_dev = std_dev  #standard deviation for each action
         self.actions = np.zeros(arms)  #true values of rewards for each action
+        self.successes = np.array([ 0 for _ in range(NB_MOTIF)]) #Keep tracks of all the successes for each action
+        self.failures = np.array([ 0 for _ in range(NB_MOTIF)]) # Keep tracks of all the failures for each action
         self.true_reward = 0.0  #average reward with non-stationary
         self.UCB_c = UCB_c  #exploration parameter for UCB
         self.sample_avg_flag = sample_avg_flag  #if true, use sample averages to update estimates instead of constant step size
+        self.thomsonSample = thomsonSample
         self.re_init()
 
 
@@ -40,12 +45,36 @@ class NArmedBandit:
 
 
     def act(self):
-    
-        #1e-5 is added so as to avoid division by zero
-        ucb_estimates = self.Q_t + self.UCB_c * np.sqrt(np.log(self.time_step + 1) / (self.N_t + 1e-5))
-        A_t = np.max(ucb_estimates)
-        action = np.random.choice(np.where(ucb_estimates == A_t)[0])
-        return action
+        
+        # Version UCB
+        if self.thomsonSample == False :
+            #1e-5 is added so as to avoid division by zero
+            ucb_estimates = self.Q_t + self.UCB_c * np.sqrt(np.log(self.time_step + 1) / (self.N_t + 1e-5))
+            A_t = np.max(ucb_estimates)
+            action = np.random.choice(np.where(ucb_estimates == A_t)[0])
+            return action
+        
+        else : 
+            # Version Thomson Sampling
+            beta_samples = np.random.beta(self.successes + 1, self.failures + 1)
+            action = np.argmax(beta_samples)
+
+            if self.time_step % 10000 ==0 and self.time_step != 0:
+                # Créer un tableau de valeurs x pour lesquelles nous calculerons la PDF
+                x = np.linspace(0, 1, 1000)
+
+                # Tracer la PDF pour chaque distribution bêta
+                for i in range(NB_MOTIF):
+                    y = beta.pdf(x, self.successes[i] + 1, self.failures[i] + 1)
+                    plt.plot(x, y, label=f'Action {i+1}')
+
+                plt.title('Beta Distributions')
+                plt.xlabel('Value')
+                plt.ylabel('Density')
+                plt.legend()
+
+                plt.show()
+            return action
 
 
 
@@ -56,6 +85,11 @@ class NArmedBandit:
         reward = reward
         self.time_step += 1
         self.N_t[action] += 1
+
+        if reward < 0 :
+            self.failures[action] += 1
+        else :
+            self.successes[action] += 1
 
 
         # estimation with sample averages
