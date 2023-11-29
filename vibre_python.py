@@ -15,10 +15,12 @@ def regler_intensite(valeur):
     arduino.write(f'{valeur}\n'.encode())
     print(f'Intensité réglée à {valeur}')
 
+"""
 while(True):
     #regler_intensite(input("Quelle valeur de vibration ? [0,255] : "))
     for i in range(20,255):
         regler_intensite(i)
+"""
 
 # Ferme la connexion série
 arduino.close()

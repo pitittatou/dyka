@@ -22,6 +22,8 @@ class NArmedBandit:
         self.UCB_c = UCB_c  #exploration parameter for UCB
         self.sample_avg_flag = sample_avg_flag  #if true, use sample averages to update estimates instead of constant step size
         self.thomsonSample = thomsonSample
+
+        self.actionPrecedente = 0
         self.re_init()
 
 
@@ -50,8 +52,12 @@ class NArmedBandit:
         if self.thomsonSample == False :
             #1e-5 is added so as to avoid division by zero
             ucb_estimates = self.Q_t + self.UCB_c * np.sqrt(np.log(self.time_step + 1) / (self.N_t + 1e-5))
+            print(self.UCB_c * np.sqrt(np.log(self.time_step + 1) / (self.N_t + 1e-5)))
+            print("UCB estimates : ",ucb_estimates)
             A_t = np.max(ucb_estimates)
+            print("A_t : ",A_t)
             action = np.random.choice(np.where(ucb_estimates == A_t)[0])
+
             return action
         
         else : 
@@ -91,12 +97,13 @@ class NArmedBandit:
         else :
             self.successes[action] += 1
 
-
-        # estimation with sample averages
-        if self.sample_avg_flag == True:
-            self.Q_t[action] += (reward - self.Q_t[action]) / self.N_t[action]
+        if reward < 0: 
+            
+            Q_t_copy = np.copy(self.Q_t)
+            Q_t_copy = np.delete(Q_t_copy,action)
+            self.Q_t[action] = np.mean(Q_t_copy)-1
+           
         else:
-            # non-staationary with constant step size 
             self.Q_t[action] += self.step_size * (reward - self.Q_t[action])
 
         with open('output.csv', 'a', newline='') as file:
@@ -104,6 +111,7 @@ class NArmedBandit:
             # Écriture des valeurs de Q_t dans le fichier
             writer.writerow(self.Q_t)
 
+        self.actionPrecedente = action
 """
 
 def play(bandit,tasks,num_time_steps):

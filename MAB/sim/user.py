@@ -213,8 +213,8 @@ class UserMAB:
         
         if self.freq < 0 :
             self.freq = 0
-        if self.freq > 200 :
-            self.freq = 200,
+        if self.freq > MAX_FREQ :
+            self.freq = MAX_FREQ,
         
 
     def new_motif(self):

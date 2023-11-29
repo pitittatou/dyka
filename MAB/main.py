@@ -4,10 +4,12 @@ from sim.user import UserMAB
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import time
+import serial
 import os
 
 user = UserMAB(base_heart_rate=100, max_heart_rate=200, max_increase=10, max_decrease=10)
-bandit = NSMAB.NArmedBandit(arms = NB_MOTIF, step_size = 0.1, eps = 0.1, UCB_c = 2, 
+bandit = NSMAB.NArmedBandit(arms = NB_MOTIF, step_size = 0.2, eps = 0.1, UCB_c = 2, 
                             sample_avg_flag = False, init_estimates = 0.0, mu = 0, std_dev = 1, thomsonSample= False)
 
 # Initialisation des listes pour stocker les valeurs
@@ -18,6 +20,19 @@ freqVibro = []
 targetFreq = []
 actionsValue = [ [] for _ in range(NB_MOTIF)]
 #os.remove('output.csv')
+
+def arduinoReady():
+    port = 'COM8'
+    baudrate = 9600
+
+    # Initialise la connexion série
+    arduino = serial.Serial(port, baudrate, timeout=1)
+    
+    # Attendez que la connexion soit établie
+    time.sleep(2)
+
+    return arduino
+
 
 def drawGraph():
          
@@ -123,9 +138,11 @@ def play(bandit,user, num_time_steps):
             actionsValue[i].append(bandit.Q_t[i])
 
 
-        if i % 3000 == 0 :
+        if i % 30000 == 0 :
             bandit.re_init()
 
+        #arduino.write(f'{user.freq}\n'.encode())
+        #time.sleep(0.5)
    
 
     return countActionOpt
@@ -143,7 +160,8 @@ print("Moyenne : ", sum/100)
 
 """
 
-nbIté = 1000
+#arduino = arduinoReady()
+nbIté = 10000
 with open('output.txt', 'w'):
     pass
 countActionOpt = play(bandit,user,nbIté)
