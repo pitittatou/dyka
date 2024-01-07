@@ -52,10 +52,10 @@ class NArmedBandit:
         if self.thomsonSample == False :
             #1e-5 is added so as to avoid division by zero
             ucb_estimates = self.Q_t + self.UCB_c * np.sqrt(np.log(self.time_step + 1) / (self.N_t + 1e-5))
-            print(self.UCB_c * np.sqrt(np.log(self.time_step + 1) / (self.N_t + 1e-5)))
-            print("UCB estimates : ",ucb_estimates)
+            #print(self.UCB_c * np.sqrt(np.log(self.time_step + 1) / (self.N_t + 1e-5)))
+            #print("UCB estimates : ",ucb_estimates)
             A_t = np.max(ucb_estimates)
-            print("A_t : ",A_t)
+            #print("A_t : ",A_t)
             action = np.random.choice(np.where(ucb_estimates == A_t)[0])
 
             return action

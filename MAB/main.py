@@ -1,3 +1,4 @@
+import threading
 import MAB.NonStationaryMAB as NSMAB
 from sim.constants import *
 from sim.user import UserMAB
@@ -7,6 +8,9 @@ import pandas as pd
 import time
 import serial
 import os
+import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 
 user = UserMAB(base_heart_rate=100, max_heart_rate=200, max_increase=10, max_decrease=10)
 bandit = NSMAB.NArmedBandit(arms = NB_MOTIF, step_size = 0.2, eps = 0.1, UCB_c = 2, 
@@ -19,7 +23,69 @@ motifs = []
 freqVibro = []
 targetFreq = []
 actionsValue = [ [] for _ in range(NB_MOTIF)]
+buttonPressed = False
+buttonResult = 0
 #os.remove('output.csv')
+
+def update_info(freqVibroInstant, action, freq_cardiaque, freqVibroAll):
+    print("freqVibroall : ", freqVibroAll)
+    # Mettre à jour les étiquettes avec les nouvelles informations
+    label_freq.config(text="Fréquence vibro : " + str(freqVibroInstant))
+    label_action.config(text="Action choisi : " + str(action))
+    label_freq_cardiaque.config(text="Fréquence cardiaque : " + str(freq_cardiaque))
+
+    x = np.arange(len(freqVibroAll))
+    ax.plot(x, freqVibroAll)
+    fig.canvas.draw()
+    
+
+# Création de la fenêtre principale
+root = tk.Tk()
+root.title("Fréquences du module vibrant")
+
+# Création du graphique Matplotlib
+fig, ax = plt.subplots()
+line, = ax.plot([], [])
+ax.set_xlabel('Temps')
+ax.set_ylabel('Fréquence')
+ax.set_title('Fréquence du module vibrant')
+
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+# Création des étiquettes pour afficher les informations
+label_freq = tk.Label(root, text="Fréquence Vibro : ")
+label_freq.pack()
+
+label_action = tk.Label(root, text="Action choisie : ")
+label_action.pack()
+
+label_freq_cardiaque = tk.Label(root, text="Fréquence cardiaque : ")
+label_freq_cardiaque.pack()
+
+def buttonLikePressed():
+    global buttonPressed
+    global buttonResult
+    buttonPressed = True
+    buttonResult = 1
+    print("Button like pressed")
+
+def buttonDislikePressed():
+    global buttonPressed
+    global buttonResult
+    buttonPressed = True
+    buttonResult = -1
+    print("Button dislike pressed")
+
+buttonLike = tk.Button(root, text="J'aime", command= buttonLikePressed)
+buttonLike.pack()
+
+buttonDislike = tk.Button(root, text="J'aime pas", command=buttonDislikePressed)
+buttonDislike.pack()
+
+
+
+# Lancement de la boucle principale de la fenêtre
 
 def arduinoReady():
     port = 'COM8'
@@ -84,27 +150,44 @@ def drawGraph():
         plt.xlabel('Temps')
         plt.ylabel('Valeur')
         plt.legend(['Courbe 1', 'Courbe 2', 'Courbe 3', 'Courbe 4', 'Courbe 5'])
-
-
-
-
-
-
-
-
     plt.show()
 
 def play(bandit,user, num_time_steps):
+   
 
     countActionOpt = 0
-
+    
     for i in range(num_time_steps):
 
         action = bandit.act()   #On choisi une action
 
         hrPrev = user.get_state()   # On regarde la freq cardiaque actuelle
-        user.get_next_state(action) # On fait l'action choisi
-        #print("HR prev : ", hrPrev, " HR actuelle : ", user.get_state())
+        print("HR prev : ", hrPrev)
+        action_value = 'uwu'
+        if action == 0 : 
+            action_value = -10
+        if action == 1 :
+            action_value = -5
+        if action == 2 :
+            action_value = 0
+        if action == 3 :
+            action_value = 5
+        if action == 4 :
+            action_value = 10
+
+        print(action_value)
+        update_info(str(user.freq), str(action_value), str(user.get_state()), freqVibro) # On met a jour les infos sur la fenetre
+        print("Avant button")
+        #user.get_next_state(action) # On fait l'action choisi
+        global buttonPressed
+        #while buttonPressed == False :
+            #pass
+        print(buttonResult)
+        while buttonPressed == False : 
+            root.update()
+        user.get_next_stateBis(action, buttonResult)
+        buttonPressed = False
+        print(" HR actuelle : ", user.get_state())
         reward = user.get_state() - hrPrev  # On regarde la variation
         if reward == 0 and user.get_state() == user.max_heart_rate :
             #print("On est a HR max mais pas d'évolution donc reward +10")
@@ -161,9 +244,15 @@ print("Moyenne : ", sum/100)
 """
 
 #arduino = arduinoReady()
-nbIté = 10000
+nbIté = 300
+
 with open('output.txt', 'w'):
     pass
+play(bandit,user,nbIté)
+
+
+
+"""
 countActionOpt = play(bandit,user,nbIté)
 print("Nombre d'actions optimales : ", countActionOpt/nbIté)
 df = pd.read_csv('output.csv', header=None)
@@ -172,6 +261,7 @@ df = pd.read_csv('output.csv', header=None)
 print(bandit.successes)
 print(bandit.failures)
 print(bandit.successes.sum() + bandit.failures.sum())
+"""
 drawGraph()
 
 

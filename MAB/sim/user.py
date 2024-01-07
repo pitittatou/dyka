@@ -143,11 +143,46 @@ class UserMAB:
         self.freq = 0
         self.targetFreq = 50
         self.freq_tolerance = 5
-        self.variation_freq_preference = 250
+        self.variation_freq_preference = 100
 
         # Les motifs sont 0 (ne rien faire), 1 (augmenter la fréquence), 2 (diminuer la fréquence)
         self.motif = 0
         self.nbActionTaken = 0 #Compteur qui permet de keep track du nombre d'action prise (permet de pas melanger bandit et user)
+
+    def get_next_stateBis(self,motif, inputUser):
+            
+            self.nbActionTaken += 1
+            
+            if inputUser == 1 :  #Si on a aimé on envoit un 1, sinon c est 0
+              
+                if self.heart_rate != self.max_heart_rate:
+                    
+                    # Calculer le facteur de réduction en fonction de la proximité de la fréquence cardiaque actuelle par rapport à la fréquence cardiaque maximale
+                    reduction_factor = 1
+                    #reduction_factor = 1 - (self.heart_rate / self.max_heart_rate)
+                    #reduction_factor = 1 - abs((self.targetFreq - self.freq) / self.max_heart_rate)
+    
+                    # Appliquer le facteur de réduction au gain de fréquence cardiaque
+                    self.heart_rate = min(self.heart_rate + reduction_factor * max(-self.max_decrease, self.max_increase), self.max_heart_rate)
+                else :
+                    self.heart_rate = self.max_heart_rate
+            else : 
+              
+                if self.heart_rate != self.min_heart_rate:
+    
+                    self.heart_rate = max(self.heart_rate - max(-self.max_decrease, self.max_increase), self.min_heart_rate)
+                else : 
+                    self.heart_rate = self.min_heart_rate
+            
+            self.modifFreq(motif)
+
+            if self.nbActionTaken % (self.variation_freq_preference) == 0 :
+                print("action taken : ", self.nbActionTaken)
+                print("ancienne freq : ", self.targetFreq)
+                self.targetFreq = random.randint(MIN_FREQ, MAX_FREQ)
+                print("New target freq : ", self.targetFreq)
+
+
 
     def get_next_state(self, motif):
 
