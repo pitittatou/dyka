@@ -28,7 +28,6 @@ buttonResult = 0
 #os.remove('output.csv')
 
 def update_info(freqVibroInstant, action, freq_cardiaque, freqVibroAll):
-    print("freqVibroall : ", freqVibroAll)
     # Mettre à jour les étiquettes avec les nouvelles informations
     label_freq.config(text="Fréquence vibro : " + str(freqVibroInstant))
     label_action.config(text="Action choisi : " + str(action))
@@ -36,6 +35,9 @@ def update_info(freqVibroInstant, action, freq_cardiaque, freqVibroAll):
 
     x = np.arange(len(freqVibroAll))
     ax.plot(x, freqVibroAll)
+    ax.plot(x, targetFreq, '--')
+
+    ay.plot(x, heart_rates)
     fig.canvas.draw()
     
 
@@ -44,11 +46,15 @@ root = tk.Tk()
 root.title("Fréquences du module vibrant")
 
 # Création du graphique Matplotlib
-fig, ax = plt.subplots()
+fig, (ax,ay) = plt.subplots(1,2)
 line, = ax.plot([], [])
 ax.set_xlabel('Temps')
 ax.set_ylabel('Fréquence')
 ax.set_title('Fréquence du module vibrant')
+
+ay.set_xlabel('Temps')
+ay.set_ylabel('Fréquence')
+ay.set_title('Fréquence cardiaque')
 
 canvas = FigureCanvasTkAgg(fig, master=root)
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -77,18 +83,26 @@ def buttonDislikePressed():
     buttonResult = -1
     print("Button dislike pressed")
 
+def buttonNextPressed():
+    global buttonPressed
+    buttonPressed = True
+    print("Button next pressed")
+
 buttonLike = tk.Button(root, text="J'aime", command= buttonLikePressed)
-buttonLike.pack()
+#buttonLike.pack()
 
 buttonDislike = tk.Button(root, text="J'aime pas", command=buttonDislikePressed)
-buttonDislike.pack()
+#buttonDislike.pack()
+
+buttonNext = tk.Button(root, text="Next", command=buttonNextPressed)
+buttonNext.pack()
 
 
 
 # Lancement de la boucle principale de la fenêtre
 
 def arduinoReady():
-    port = 'COM8'
+    port = 'COM3'
     baudrate = 9600
 
     # Initialise la connexion série
@@ -178,16 +192,24 @@ def play(bandit,user, num_time_steps):
         print(action_value)
         update_info(str(user.freq), str(action_value), str(user.get_state()), freqVibro) # On met a jour les infos sur la fenetre
         print("Avant button")
-        #user.get_next_state(action) # On fait l'action choisi
         global buttonPressed
-        #while buttonPressed == False :
-            #pass
-        print(buttonResult)
-        while buttonPressed == False : 
-            root.update()
-        user.get_next_stateBis(action, buttonResult)
-        buttonPressed = False
-        print(" HR actuelle : ", user.get_state())
+        if 1 == 1 :
+            user.get_next_state(action) # On fait l'action choisi
+            if i %10 == 0 :
+                while buttonPressed == False : 
+                    arduino.write(f'{user.freq}\n'.encode())
+                    root.update()
+                buttonPressed = False
+        else :
+            print(buttonResult)
+            while buttonPressed == False : 
+                arduino.write(f'{user.freq}\n'.encode())
+                root.update()
+            user.get_next_stateBis(action, buttonResult)
+            buttonPressed = False
+            print(" HR actuelle : ", user.get_state())
+
+        
         reward = user.get_state() - hrPrev  # On regarde la variation
         if reward == 0 and user.get_state() == user.max_heart_rate :
             #print("On est a HR max mais pas d'évolution donc reward +10")
@@ -202,10 +224,7 @@ def play(bandit,user, num_time_steps):
         #print("Time : ", i, " Action : ", action, " VibroFreq : ", user.freq," Target freq : ", user.targetFreq , " User motif : ", user.motif, " Reward : ", reward, " Heart rate : ", user.get_state())
         with open('output.txt', 'a') as f:
             f.write("Time : " + str(i) + " Action : " + str(action) + " VibroFreq : " + str(user.freq) + " Target freq : " + str(user.targetFreq) + " User motif : " + str(user.motif) + " Reward : " + str(reward) + " Heart rate : " + str(user.get_state()) + "\n")
-        """
-        if i % (num_time_steps//5) == 0 :
-             user.new_motif() #On change le motif
-        """   
+       
       
 
         bandit.step(action, reward)
@@ -221,47 +240,25 @@ def play(bandit,user, num_time_steps):
             actionsValue[i].append(bandit.Q_t[i])
 
 
-        if i % 30000 == 0 :
-            bandit.re_init()
+       
 
-        #arduino.write(f'{user.freq}\n'.encode())
+        arduino.write(f'{user.freq}\n'.encode())
         #time.sleep(0.5)
    
 
     return countActionOpt
 
 sum = 0 
-"""
-for i in range(100):
-    nbIté = 1000
-    countActionOpt = play(bandit,user,nbIté)
-    print("Nombre d'actions optimales : ", countActionOpt/nbIté)
-    sum += countActionOpt/nbIté
 
-print("Moyenne : ", sum/100)
-    
 
-"""
-
-#arduino = arduinoReady()
+arduino = arduinoReady()
+print("Arduino ready")
 nbIté = 300
 
 with open('output.txt', 'w'):
     pass
 play(bandit,user,nbIté)
 
-
-
-"""
-countActionOpt = play(bandit,user,nbIté)
-print("Nombre d'actions optimales : ", countActionOpt/nbIté)
-df = pd.read_csv('output.csv', header=None)
-#print(df)
-
-print(bandit.successes)
-print(bandit.failures)
-print(bandit.successes.sum() + bandit.failures.sum())
-"""
 drawGraph()
 
 
