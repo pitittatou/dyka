@@ -35,7 +35,7 @@ def update_info(freqVibroInstant, action, freq_cardiaque, freqVibroAll):
 
     x = np.arange(len(freqVibroAll))
     ax.plot(x, freqVibroAll)
-    ax.plot(x, targetFreq, '--')
+    #ax.plot(x, targetFreq, '--')
 
     ay.plot(x, heart_rates)
     fig.canvas.draw()
@@ -253,7 +253,7 @@ sum = 0
 
 arduino = arduinoReady()
 print("Arduino ready")
-nbIté = 300
+nbIté = 3000
 
 with open('output.txt', 'w'):
     pass
