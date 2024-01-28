@@ -9,7 +9,7 @@ class NArmedBandit:
 
     # 10-armed bandit testbed with sample averages
     def __init__(self, arms=NB_MOTIF, step_size=0.1, eps=0, UCB_c=None, sample_avg_flag=False, init_estimates=0.0, mu=0, std_dev=1, thomsonSample=False):
-
+        np.random.seed(1431242)
         self.arms = arms  # number of arms
         self.step_size = step_size  # constant step size
         self.eps = eps  # probability of exploration
@@ -31,6 +31,7 @@ class NArmedBandit:
 
         # true values of rewards for each action
         self.actions = np.random.normal(self.mu, self.std_dev, self.arms)
+        print(self.actions)
 
         # estimation for each action
         self.Q_t = np.zeros(self.arms) + self.init_estimates
