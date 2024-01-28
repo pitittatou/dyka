@@ -195,10 +195,7 @@ class UserMAB:
         self.modifFreq(motif)
 
         if self.nbActionTaken % (self.variation_freq_preference) == 0:
-            print("action taken : ", self.nbActionTaken)
-            print("ancienne freq : ", self.targetFreq)
             self.targetFreq = random.randint(MIN_FREQ, MAX_FREQ)
-            print("New target freq : ", self.targetFreq)
 
     def get_next_state(self, motif):
 

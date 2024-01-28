@@ -31,7 +31,6 @@ class NArmedBandit:
 
         # true values of rewards for each action
         self.actions = np.random.normal(self.mu, self.std_dev, self.arms)
-        print(self.actions)
 
         # estimation for each action
         self.Q_t = np.zeros(self.arms) + self.init_estimates
